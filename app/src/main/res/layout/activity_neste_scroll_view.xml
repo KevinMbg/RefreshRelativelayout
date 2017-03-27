@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/tartget">
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#ccffcc"/>
+        <!--<View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#FFA500"/>-->
+       <!-- <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#EEE9E9"/>-->
+        <!--<View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#D1EEEE"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#CDB79E"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#C1CDCD"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#A52A2A"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#8DB6CD"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#836FFF"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#7CFC00"/>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:background="#6495ED"/>-->
+
+    </LinearLayout>
+</ScrollView>

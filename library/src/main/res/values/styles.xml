@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="RefreshRelativeLayout">
+        <attr name="orientation">
+            <enum name="horizontal" value="0"/>
+            <enum name="vertical" value="1"/>
+        </attr>
+        <attr name="positiveDragEnable" format="boolean"/>
+        <attr name="negativeDragEnable" format="boolean"/>
+        <attr name="positiveEnable" format="boolean"/>
+        <attr name="negativeEnable" format="boolean"/>
+        <attr name="isPositiveOverlay" format="boolean"/>
+        <attr name="isNegativeOverlay" format="boolean"/>
+        <attr name="positive_refresher_type">
+            <enum name="PROGRESSOR" value="0"/>
+            <enum name="ARROW_WITH_WHITETEXT" value="1"/>
+            <enum name="ARROW_WITH_GRAYTEXT" value="2"/>
+            <enum name="HORIZONTAL_PROGRESSOR" value="3"/>
+        </attr>
+        <attr name="negative_refresher_type">
+            <enum name="PROGRESS_WITH_NODATA" value="0"/>
+            <enum name="PROGRESS_WITH_NODATA_OVERLAY" value="1"/>
+            <enum name="HORIZONTAL_PROGRESSOR" value="2"/>
+            <enum name="HORIZONTAL_LOADMORE" value="3"/>
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="BezierRefreshView">
+        <attr name="Rect_Width" format="dimension"/>
+        <attr name="Oval_Width" format="dimension"/>
+        <attr name="Back_Color" format="color"/>
+    </declare-styleable>
+</resources>

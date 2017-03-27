@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    android:id="@+id/activity_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.mbg.refreshlayout.MainActivity"
+    android:padding="15dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+   <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical">
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套ScrollView"
+           android:onClick="NestedScrollView"/>
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套RecyclerView"
+           android:onClick="NestedRecyclerView"/>
+
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套ListView"
+           android:onClick="NestedListView"/>
+
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套GridView"
+           android:onClick="NestedGridView"/>
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套普通View"
+           android:onClick="NestedNormalViewVertical"/>
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套WebView"
+           android:onClick="NestedWebView"/>
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套HorizontalScrollView"
+           android:onClick="NestedHorizontalScrollView"/>
+
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="嵌套水平RecyclerView"
+           android:onClick="NestedHorizontalRecyclerView"/>
+
+       <Button
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="双向嵌套"
+           android:onClick="NestedDoubleDirection"/>
+
+   </LinearLayout>
+
+</ScrollView>

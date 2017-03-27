@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.mbg.library.RefreshRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:orientation="horizontal"
+    app:positiveEnable="false"
+    app:negativeDragEnable="true"
+    app:isNegativeOverlay="false"
+    android:id="@+id/recycler_item_refresh">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/recycler_item_image"/>
+
+</com.mbg.library.RefreshRelativeLayout>

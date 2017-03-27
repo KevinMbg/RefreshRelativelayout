@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.mbg.library.RefreshRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:orientation="horizontal"
+    android:id="@+id/recycler_item_refresh"
+    app:negative_refresher_type="HORIZONTAL_PROGRESSOR"
+    app:positiveEnable="false"
+    app:negativeDragEnable="true"
+    android:paddingBottom="10dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#33ffff"
+        android:id="@+id/recycler_item_text"
+        android:gravity="center"/>
+
+</com.mbg.library.RefreshRelativeLayout>
