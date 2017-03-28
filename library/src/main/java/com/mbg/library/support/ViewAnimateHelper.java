@@ -12,7 +12,7 @@ import com.mbg.library.IRefresher;
  * Created by Administrator on 2017/3/19.
  */
 
-public class ViewScrollUtil {
+public class ViewAnimateHelper {
     private int ANIMATE_DURATION = 200;
     private DecelerateInterpolator decelerateInterpolator;
     private ValueAnimator mAnimator;
