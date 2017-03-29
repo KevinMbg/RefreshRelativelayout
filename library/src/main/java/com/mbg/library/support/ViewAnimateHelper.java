@@ -16,6 +16,16 @@ public class ViewAnimateHelper {
     private int ANIMATE_DURATION = 200;
     private DecelerateInterpolator decelerateInterpolator;
     private ValueAnimator mAnimator;
+    private onAnimateStartListener mStartListener;
+    private onAnimateEndListener mEndListener;
+
+    public void setAnimateEndListener(onAnimateEndListener endListener){
+        this.mEndListener=endListener;
+    }
+
+    public void setAnimateStartListener(onAnimateStartListener listener){
+        mStartListener = listener;
+    }
 
     public void setAnimateDuration(int duration){
         if(duration < 0){
@@ -115,13 +125,18 @@ public class ViewAnimateHelper {
         mAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-
+                if(null != mStartListener){
+                    mStartListener.onAnimateStart();
+                }
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
                 if(null != endListener){
                     endListener.onAnimateEnd();
+                }
+                if(null != mEndListener && mEndListener != endListener){
+                    mEndListener.onAnimateEnd();
                 }
             }
 
@@ -138,7 +153,7 @@ public class ViewAnimateHelper {
         mAnimator.start();
     }
 
-    public void startAnimatorOfInt(int startOffset, int endOffset, long duration, ValueAnimator.AnimatorUpdateListener animateupdateListener, final onAnimateEndListener endListener){
+    public void startAnimatorOfInt(final int startOffset, final int endOffset, long duration, ValueAnimator.AnimatorUpdateListener animateupdateListener, final onAnimateEndListener endListener){
         if(null != mAnimator && mAnimator.isStarted()){
             return;
         }
@@ -149,13 +164,18 @@ public class ViewAnimateHelper {
         mAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-
+                if(null != mStartListener){
+                    mStartListener.onAnimateStart();
+                }
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
                 if(null != endListener){
                     endListener.onAnimateEnd();
+                }
+                if(null != mEndListener){
+                    mEndListener.onAnimateEnd();
                 }
             }
 
@@ -289,16 +309,16 @@ public class ViewAnimateHelper {
      * @param endListener
      */
     public void delayScrollToYWithRefer(final View view, final View referView, final float withOffset, final boolean isPositive, final long duration, final long delay, final IRefresher refresher, final onAnimateEndListener endListener){
-       if(delay == 0){
-           startScrooToYAnimator(view,referView,withOffset,isPositive,duration,refresher,endListener);
-       }else {
-           view.postDelayed(new Runnable() {
-               @Override
-               public void run() {
-                   startScrooToYAnimator(view, referView,withOffset, isPositive, duration, refresher, endListener);
-               }
-           }, delay);
-       }
+        if(delay == 0){
+            startScrooToYAnimator(view,referView,withOffset,isPositive,duration,refresher,endListener);
+        }else {
+            view.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startScrooToYAnimator(view, referView,withOffset, isPositive, duration, refresher, endListener);
+                }
+            }, delay);
+        }
     }
 
     /**
@@ -312,5 +332,8 @@ public class ViewAnimateHelper {
 
     public interface onAnimateEndListener{
         void onAnimateEnd();
+    }
+    public interface onAnimateStartListener{
+        void onAnimateStart();
     }
 }

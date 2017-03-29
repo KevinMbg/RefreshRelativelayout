@@ -2,6 +2,7 @@ package com.mbg.library;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
@@ -97,12 +98,19 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
      */
     private NestedScrollingParentHelper mNestedScrollingParentHelper;
     private NestedScrollingChildHelper mNestedScrollingChildHelper;
-    private int mDragType=0;
+    private int mDragType=DRAG_TYPE_NULL;
     private ViewScrollHelper mScrollHelper;
+
+    private static final int DRAG_TYPE_NULL=0;
+    private static final int DRAG_TYPE_DOWNORRIGHT_NORMAL=1;//非刷新状态下拖拽
+    private static final int DRAG_TYPE_UPORLEFT_NORMAL=2;//非刷新状态下拖拽
+    private static final int DRAG_TYPE_POSITIVE_REFRESHING=3;//positiverefreshing 时上滑或者右滑
+    private static final int DRAG_TYPE_NEGATIVE_REFRESHING=4;
 
     private ViewAnimateHelper mViewAnimateHelper;
     private ViewAnimateHelper.onAnimateEndListener mPositiveAnimEndListener,mNegativeAnimEndListener;//不是监听刷新控件动画，监听何时开始执行刷新控件的刷新状态
     private ViewAnimateHelper.onAnimateEndListener mAnimEndListenerWithoutRefresh;//所有View复原动画结束之后执行
+    private ViewAnimateHelper.onAnimateStartListener mAnimStartListener;
     private boolean mPositiveRefreshing=false,mNegativeRefreshing=false;
     private int[] mInitialPadding;
 
@@ -295,6 +303,8 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         mNestedScrollingChildHelper = new NestedScrollingChildHelper(this);
         setNestedScrollingEnabled(true);
         mViewAnimateHelper=new ViewAnimateHelper();
+        mViewAnimateHelper.setAnimateStartListener(getAnimStartListener());
+        mViewAnimateHelper.setAnimateEndListener(getAnimEndWithoutRefreshListener());
         mScrollHelper=new ViewScrollHelper(orientationIsHorizontal,positiveDragEnable,negativeDragEnable);
         onScrollToEdgeListener=new IViewScrollHelper.onScrollToEdgeListener() {
             @Override
@@ -305,7 +315,33 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
     }
 
+    private int mScrollStatus=SCROLL_STATUS_NORMAL;
+
+    private static final int SCROLL_STATUS_NORMAL=0;
+    private static final int SCROLL_STATUS_TOUCH=1;
+    private static final int SCROLL_STATUS_ANIMATE=2;
+    private static final int SCROLL_STATUS_TOUCH_END=3;
+    private static final int SCROLL_STATUS_ANIM_END=4;
+
+    private void setScrollStatus(int status){
+        if(SCROLL_STATUS_ANIMATE == status || SCROLL_STATUS_TOUCH == status){
+            mScrollStatus = status;
+        }else if(SCROLL_STATUS_TOUCH_END == status && SCROLL_STATUS_ANIMATE != mScrollStatus){
+            mScrollStatus=SCROLL_STATUS_NORMAL;
+        }else if(SCROLL_STATUS_ANIM_END == status && SCROLL_STATUS_TOUCH != mScrollStatus){
+            mScrollStatus = SCROLL_STATUS_NORMAL;
+        }
+        // Log.i(TAG,"setScrollStatus->status:"+status+",mScrollStatus:"+mScrollStatus+",time:"+System.currentTimeMillis());
+        if(SCROLL_STATUS_NORMAL == mScrollStatus){
+            mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
+        }else{
+            mScrollHelper.setScrollToEdgeListener(null);
+        }
+    }
+
+
     private void onScrollEdge(int edgeType){
+        //Log.i(TAG,"onScrollEdge->edgeType:"+edgeType+",time:"+System.currentTimeMillis());
         switch (edgeType){
             case ViewScrollHelper.EDGE_UP:
                 if(!isNegativeRefreshing() && null != mPositiveRefreshView) {
@@ -685,6 +721,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         boolean intercept=false;
         switch (action){
             case MotionEvent.ACTION_DOWN:
+                setScrollStatus(SCROLL_STATUS_TOUCH);
                 requestDisallowInterceptTouchEvent(false);
                 mActivePointerId = ev.getPointerId(0);
                 float[] initialDownXY= getMotionEventXY(ev,mActivePointerId);
@@ -712,10 +749,8 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
                     mInitialMotionX = mInitialDownX;
                     mInitialMotionY = mInitialDownY;
                     requestDisallowInterceptTouchEvent(true);
-                    mScrollHelper.setScrollToEdgeListener(null);
                 }else{
                     requestDisallowInterceptTouchEvent(false);
-                    mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
                 }
                 break;
             case MotionEventCompat.ACTION_POINTER_UP:
@@ -724,7 +759,8 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 mActivePointerId = INVALID_POINTER;
-                mDragType = 0;
+                mDragType = DRAG_TYPE_NULL;
+                setScrollStatus(SCROLL_STATUS_TOUCH_END);
                 requestDisallowInterceptTouchEvent(false);
                 break;
         }
@@ -742,26 +778,26 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             if(offsetX > 0){
                 //初动是右滑
                 if(negativeEnable && isUnoverlayRightShowing()){//非overlay状态右滑正在刷新
-                    mDragType =2;
+                    mDragType =DRAG_TYPE_NEGATIVE_REFRESHING;
                     resetInitValueWhenRightShowing();
                     return true;
                 }
                 /*if(positiveEnable && !canChildScrollRight() && !isNegativeRefreshing()){*/
                 if(positiveEnable && !mScrollHelper.canViewScrollRight(mTargetView) && !isNegativeRefreshing()){
-                    mDragType =1;
+                    mDragType =DRAG_TYPE_DOWNORRIGHT_NORMAL;
                     resetInitValueWhenLeftShowing();
                     return true;
                 }
             }else{
                 //初动是左滑
                 if(positiveEnable && isUnoverlayLeftShowing()){//非overlay状态左滑正在刷新
-                    mDragType =1;
+                    mDragType =DRAG_TYPE_POSITIVE_REFRESHING;
                     resetInitValueWhenLeftShowing();
                     return true;
                 }
                 /*if(negativeEnable && !canChildScrollLeft() && !isPositiveRefreshing()){*/
                 if(negativeEnable && !mScrollHelper.canViewScrollLeft(mTargetView) && !isPositiveRefreshing()){
-                    mDragType =2;
+                    mDragType =DRAG_TYPE_UPORLEFT_NORMAL;
                     resetInitValueWhenRightShowing();
                     return true;
                 }
@@ -773,26 +809,26 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             if(offsetY > 0){
                 //初动是下拉
                 if(negativeEnable && isUnoverlayDownShowing()){//非overlay状态上滑刷新正在刷新
-                   mDragType =2;
+                    mDragType = DRAG_TYPE_NEGATIVE_REFRESHING;
                     resetInitValueWhenDownShowing();
                     return true;
                 }
                 /*if(positiveEnable && !canChildScrollDown() && !isNegativeRefreshing()){*/
                 if(positiveEnable && !mScrollHelper.canViewScrollDown(mTargetView) && !isNegativeRefreshing()){
-                    mDragType =1;
+                    mDragType =DRAG_TYPE_DOWNORRIGHT_NORMAL;
                     resetInitValueWhenUpShowing();
                     return true;
                 }
             }else{
                 //初动是上滑
                 if(positiveEnable && isUnoverlayoutUpShowing()){
-                    mDragType=1;
+                    mDragType= DRAG_TYPE_POSITIVE_REFRESHING;
                     resetInitValueWhenUpShowing();
                     return true;
                 }
                 /*if(negativeEnable && !canChildScrollUp() && !isPositiveRefreshing()){*/
                 if(negativeEnable && !mScrollHelper.canViewScrollUp(mTargetView) && !isPositiveRefreshing()){
-                    mDragType =2;
+                    mDragType = DRAG_TYPE_UPORLEFT_NORMAL;
                     resetInitValueWhenDownShowing();
                     return true;
                 }
@@ -813,10 +849,8 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             float dragX = (x - mInitialMotionX);
             float dragY = (y - mInitialMotionY);
             requestDisallowInterceptTouchEvent(true);
-            mScrollHelper.setScrollToEdgeListener(null);
             return dealDragEvent(dragX, dragY);
         }
-        mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
         requestDisallowInterceptTouchEvent(false);
         return false;
     }
@@ -831,16 +865,17 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         switch (action){
             case MotionEvent.ACTION_DOWN:
                 mActivePointerId = event.getPointerId(0);
+                setScrollStatus(SCROLL_STATUS_TOUCH);
                 break;
             case MotionEvent.ACTION_MOVE:
                 pointerIndex = event.findPointerIndex(mActivePointerId);
                 if(pointerIndex < 0){
-                    Log.e(TAG, "Got ACTION_MOVE event but have an invalid active pointer id.");
+                    //Log.e(TAG, "Got ACTION_MOVE event but have an invalid active pointer id.");
                     return false;
                 }
                 float x = event.getX(pointerIndex);
                 float y = event.getY(pointerIndex);
-                if(mDragType == 0){
+                if(DRAG_TYPE_NULL == mDragType){
                     reinitDragType(event,x,y);
                 }else {
                     float dragX = (x - mInitialMotionX);
@@ -854,7 +889,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             case MotionEventCompat.ACTION_POINTER_DOWN:
                 pointerIndex = event.getActionIndex();
                 if(pointerIndex < 0){
-                    Log.e(TAG, "Got ACTION_POINTER_DOWN event but have an invalid action index.");
+                    //Log.e(TAG, "Got ACTION_POINTER_DOWN event but have an invalid action index.");
                     return false;
                 }
                 mActivePointerId = event.getPointerId(pointerIndex);
@@ -863,7 +898,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             case MotionEvent.ACTION_CANCEL:
                 pointerIndex = event.findPointerIndex(mActivePointerId);
                 if(pointerIndex <0 ){
-                    Log.e(TAG, "Got ACTION_UP/ACTION_CANCEL event but don't have an active pointer id.");
+                    //Log.e(TAG, "Got ACTION_UP/ACTION_CANCEL event but don't have an active pointer id.");
                     return false;
                 }
                 float endX = event.getX(pointerIndex);
@@ -873,6 +908,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
                 onStopDrag(offsetX,offsetY);
                 mActivePointerId = INVALID_POINTER;
                 mDragType=0;
+                setScrollStatus(SCROLL_STATUS_TOUCH_END);
                 requestDisallowInterceptTouchEvent(false);
                 canTrans = false;
                 break;
@@ -888,20 +924,20 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         dragX = dragX * DRAG_RATE;
         dragY = dragY * DRAG_RATE;
         if(orientationIsHorizontal &&  absX*2 > absY){
-            if(mDragType == 1){
+            if(DRAG_TYPE_POSITIVE_REFRESHING == mDragType || DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType){
                 //右滑
                 setViewOffsetRight((int) dragX);
                 return true;
-            }else if(mDragType == 2){
+            }else if(DRAG_TYPE_NEGATIVE_REFRESHING == mDragType || DRAG_TYPE_UPORLEFT_NORMAL == mDragType){
                 setViewOffsetLeft((int) dragX);
                 return true;
             }
         }else if(!orientationIsHorizontal  && absX <absY*2){
-            if(mDragType == 1){
+            if(DRAG_TYPE_POSITIVE_REFRESHING == mDragType || DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType){
                 //下拉
                 setViewOffsetDown((int) (dragY));
                 return true;
-            }else if(mDragType == 2){
+            }else if(DRAG_TYPE_NEGATIVE_REFRESHING == mDragType || DRAG_TYPE_UPORLEFT_NORMAL == mDragType){
                 //上滑
                 setViewOffsetUp((int) dragY);
                 return true;
@@ -917,7 +953,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             return;
         }
         if(!positiveDragEnable){
-            autoStartRefreshing(true);
+            if(DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType) {
+                autoStartRefreshing(true);
+            }
             int showHeight= (int) (mPositiveHeight + mPositiveRefresher.getOverlayOffset());
             if(offset >= showHeight) {
                 offset = showHeight;
@@ -944,7 +982,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             return;
         }
         if(!negativeDragEnable){
-            autoStartRefreshing(false);
+            if(DRAG_TYPE_UPORLEFT_NORMAL == mDragType) {
+                autoStartRefreshing(false);
+            }
             int showHeight= (int) (mNegativeHeight + mNegativeRefresher.getOverlayOffset());
             if(offset <= -showHeight) {
                 offset = -showHeight;
@@ -970,7 +1010,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             return;
         }
         if(!negativeDragEnable){
-            autoStartRefreshing(false);
+            if(DRAG_TYPE_UPORLEFT_NORMAL == mDragType) {
+                autoStartRefreshing(false);
+            }
             int showWidth= (int) (mNegativeWidth+mNegativeRefresher.getOverlayOffset());
             if(offset < -showWidth) {
                 offset = -showWidth;
@@ -995,7 +1037,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             return;
         }
         if(!positiveDragEnable){
-            autoStartRefreshing(true);
+            if(DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType) {
+                autoStartRefreshing(true);
+            }
             int showWidth= (int) (mPositiveWidth+mPositiveRefresher.getOverlayOffset());
             if(offset > showWidth) {
                 offset = showWidth;
@@ -1038,27 +1082,27 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         offsetX = offsetX*DRAG_RATE;
         offsetY = offsetY*DRAG_RATE;
         if(orientationIsHorizontal){
-            if(1 == mDragType){
+            if(DRAG_TYPE_POSITIVE_REFRESHING == mDragType || DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType){
                 //右滑
                 stopDragRight(offsetX);
                 return;
-            }else if(2 == mDragType){
+            }else if(DRAG_TYPE_NEGATIVE_REFRESHING == mDragType || DRAG_TYPE_UPORLEFT_NORMAL == mDragType){
                 //左滑
                 stopDragLeft(-offsetX);
                 return;
             }
-            mViewAnimateHelper.horizonalSmoothScrollTo(this,0,200,null,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.horizonalSmoothScrollTo(this,0,200,null,null);
         }else{
-            if(1 == mDragType){
+            if(DRAG_TYPE_POSITIVE_REFRESHING == mDragType || DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType){
                 //下拉
                 stopDragDown(offsetY);
                 return;
-            }else if(2 == mDragType){
+            }else if(DRAG_TYPE_NEGATIVE_REFRESHING == mDragType || DRAG_TYPE_UPORLEFT_NORMAL == mDragType){
                 //上滑
                 stopDragUp(-offsetY);
                 return;
             }
-            mViewAnimateHelper.verticalSmoothScrollTo(this,0,200,null,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.verticalSmoothScrollTo(this,0,200,null,null);
         }
         //mDragType =0;
     }
@@ -1067,7 +1111,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
     private void stopDragUp(float offset){
         int duration=mViewAnimateHelper.getAnimateDuration();
         if(null == mNegativeRefreshView){
-            mViewAnimateHelper.verticalSmoothScrollTo(this,0,duration,null,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.verticalSmoothScrollTo(this,0,duration,null,null);
             return;
         }
         if(offset <= -(mNegativeHeight+mNegativeRefresher.getOverlayOffset()) && !negativeDragEnable){
@@ -1076,12 +1120,11 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         ViewAnimateHelper.onAnimateEndListener endListener=null;
         float translateY=0,scrollY=0;
-        if(!negativeDragEnable || mNegativeRefresher.canRefresh(offset)){
+        if((!negativeDragEnable && DRAG_TYPE_UPORLEFT_NORMAL == mDragType) || mNegativeRefresher.canRefresh(offset)){
             endListener=getNegativeAnimEndListener();
             translateY=-mNegativeRefresher.getOverlayOffset();
             scrollY=mNegativeHeight+mNegativeRefresher.getOverlayOffset();
         }else{
-            endListener = getAnimEndWithoutRefreshListener();
             translateY=mNegativeHeight;
             scrollY=0;
         }
@@ -1096,7 +1139,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
     private void stopDragDown(float offset){
         int duration=mViewAnimateHelper.getAnimateDuration();
         if(null == mPositiveRefreshView){
-            mViewAnimateHelper.verticalSmoothScrollTo(this,0,duration,null,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.verticalSmoothScrollTo(this,0,duration,null,null);
             return;
         }
         if(offset >= mPositiveHeight+mPositiveRefresher.getOverlayOffset() && !positiveDragEnable){
@@ -1105,12 +1148,11 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         ViewAnimateHelper.onAnimateEndListener endListener=null;
         float translateY=0,scrollY=0;
-        if(!positiveDragEnable || mPositiveRefresher.canRefresh(offset)){
+        if((!positiveDragEnable && DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType) || mPositiveRefresher.canRefresh(offset)){
             endListener=getPositiveAnimEndListener();
             translateY=mPositiveRefresher.getOverlayOffset();
             scrollY=-mPositiveHeight-mPositiveRefresher.getOverlayOffset();
         }else{
-            endListener = getAnimEndWithoutRefreshListener();
             translateY=-mPositiveHeight;
             scrollY=0;
         }
@@ -1124,7 +1166,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
     private void stopDragLeft(float offset){
         int duration=mViewAnimateHelper.getAnimateDuration();
         if(null == mNegativeRefreshView){
-            mViewAnimateHelper.horizonalSmoothScrollTo(this,0,duration,null,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.horizonalSmoothScrollTo(this,0,duration,null,null);
             return;
         }
         if(offset <= -(mNegativeWidth+mNegativeRefresher.getOverlayOffset()) && !negativeDragEnable){
@@ -1133,12 +1175,11 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         ViewAnimateHelper.onAnimateEndListener endListener=null;
         float translateX=0,scrollX=0;
-        if(!negativeDragEnable || mNegativeRefresher.canRefresh(offset)){
+        if((!negativeDragEnable && DRAG_TYPE_UPORLEFT_NORMAL == mDragType) || mNegativeRefresher.canRefresh(offset)){
             endListener=getNegativeAnimEndListener();
             translateX = -mNegativeRefresher.getOverlayOffset();
             scrollX=mNegativeWidth+mNegativeRefresher.getOverlayOffset();
         }else{
-            endListener = getAnimEndWithoutRefreshListener();
             translateX=mNegativeWidth;
             scrollX=0;
         }
@@ -1152,7 +1193,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
     private void stopDragRight(float offset){
         int duration = mViewAnimateHelper.getAnimateDuration();
         if(null == mPositiveRefreshView){
-            mViewAnimateHelper.horizonalSmoothScrollTo(this,0,duration,null,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.horizonalSmoothScrollTo(this,0,duration,null,null);
             return;
         }
         if(offset >= mPositiveWidth+mPositiveRefresher.getOverlayOffset() && !positiveDragEnable){
@@ -1162,12 +1203,11 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         ViewAnimateHelper.onAnimateEndListener endListener=null;
         float translateX=0,scrollX=0;
-        if(!positiveDragEnable || mPositiveRefresher.canRefresh(offset)){
+        if((!positiveDragEnable && DRAG_TYPE_DOWNORRIGHT_NORMAL == mDragType)|| mPositiveRefresher.canRefresh(offset)){
             endListener=getPositiveAnimEndListener();
             translateX=mPositiveRefresher.getOverlayOffset();
             scrollX = -mPositiveWidth-mPositiveRefresher.getOverlayOffset();
         }else{
-            endListener =getAnimEndWithoutRefreshListener();
             translateX= -mPositiveWidth;
             scrollX=0;
         }
@@ -1178,12 +1218,36 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
     }
 
+    private ViewAnimateHelper.onAnimateStartListener getAnimStartListener(){
+        if(null == mAnimStartListener){
+            mAnimStartListener=new ViewAnimateHelper.onAnimateStartListener() {
+                @Override
+                public void onAnimateStart() {
+                    setScrollStatus(SCROLL_STATUS_ANIMATE);
+                }
+            };
+        }
+        return mAnimStartListener;
+    }
+
+
     private ViewAnimateHelper.onAnimateEndListener getAnimEndWithoutRefreshListener(){
         if(null == mAnimEndListenerWithoutRefresh){
             mAnimEndListenerWithoutRefresh=new ViewAnimateHelper.onAnimateEndListener() {
                 @Override
                 public void onAnimateEnd() {
-                    mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
+                    //api 23以下使用viewtreeObserver的onScorllChangeListener,略有延时
+                    //Log.i(TAG,"onAnimateEnd:"+System.currentTimeMillis());
+                    if(Build.VERSION.SDK_INT >= 23 || isRefreshing()) {
+                        setScrollStatus(SCROLL_STATUS_ANIM_END);
+                    }else{
+                        postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                setScrollStatus(SCROLL_STATUS_ANIM_END);
+                            }
+                        },100);
+                    }
                 }
             };
         }
@@ -1195,10 +1259,10 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             mPositiveAnimEndListener=new ViewAnimateHelper.onAnimateEndListener() {
                 @Override
                 public void onAnimateEnd() {
+                    //Log.i(TAG,"getPositiveAnimEndListener");
                     if (null == mPositiveRefresher) {
                         return;
                     }
-                    mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
                     boolean withComplete = mPositiveRefresher.onStartRefresh();
                     autoStartRefreshing(true, withComplete);
                 }
@@ -1212,10 +1276,10 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             mNegativeAnimEndListener = new ViewAnimateHelper.onAnimateEndListener() {
                 @Override
                 public void onAnimateEnd() {
+                    //Log.i(TAG,"getNegativeAnimEndListener");
                     if(null == mNegativeRefresher){
                         return;
                     }
-                    mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
                     boolean withComplete=mNegativeRefresher.onStartRefresh();
                     autoStartRefreshing(false,withComplete);
                 }
@@ -1264,7 +1328,6 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         if(null == mPositiveRefreshView){
             return;
         }
-        mScrollHelper.setScrollToEdgeListener(null);
         long delay=mPositiveRefresher.onRefreshComplete();
         if(orientationIsHorizontal){
             hideLeftRefresher(delay);
@@ -1284,7 +1347,6 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         if(null == mNegativeRefreshView){
             return;
         }
-        mScrollHelper.setScrollToEdgeListener(null);
         long delay=mNegativeRefresher.onRefreshComplete();
         if(orientationIsHorizontal){
             hideRightRefresher(delay);
@@ -1342,10 +1404,10 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         int duration=mViewAnimateHelper.getAnimateDuration();
         if(positiveOverlayUsed){
             if(isOverlayUpRefresherShowing()) {
-                mViewAnimateHelper.delaySmoothTranslateY(mPositiveRefreshView,-mPositiveHeight,duration,delay,true,null,getAnimEndWithoutRefreshListener());
+                mViewAnimateHelper.delaySmoothTranslateY(mPositiveRefreshView,-mPositiveHeight,duration,delay,true,mPositiveRefresher,null);
             }
         }else  if(isUnoverlayoutUpShowing()){
-            mViewAnimateHelper.delayScrollToY(this,0,duration,delay,null,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.delayScrollToY(this,0,duration,delay,mPositiveRefresher,null);
         }
     }
 
@@ -1353,10 +1415,10 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         int duration=mViewAnimateHelper.getAnimateDuration();
         if(negativeOverlayUsed){
             if(isOverlayDownRefresherShowing()) {
-                mViewAnimateHelper.delaySmoothTranslateY(mNegativeRefreshView,mNegativeHeight,duration,delay,false,mNegativeRefresher,getAnimEndWithoutRefreshListener());
+                mViewAnimateHelper.delaySmoothTranslateY(mNegativeRefreshView,mNegativeHeight,duration,delay,false,mNegativeRefresher,null);
             }
         }else if(isUnoverlayDownShowing()){
-            mViewAnimateHelper.delayScrollToY(this,0,duration,delay,mNegativeRefresher,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.delayScrollToY(this,0,duration,delay,mNegativeRefresher,null);
         }
     }
 
@@ -1364,10 +1426,10 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         int duration=mViewAnimateHelper.getAnimateDuration();
         if(positiveOverlayUsed){
             if(isOverlayLeftRefresherShowing()) {
-                mViewAnimateHelper.delaySmoothTranslateX(mPositiveRefreshView,-mPositiveWidth,duration,delay,true,mPositiveRefresher,getAnimEndWithoutRefreshListener());
+                mViewAnimateHelper.delaySmoothTranslateX(mPositiveRefreshView,-mPositiveWidth,duration,delay,true,mPositiveRefresher,null);
             }
         }else if(isUnoverlayLeftShowing()){
-            mViewAnimateHelper.delayScrollToX(this,0,duration,delay,mPositiveRefresher,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.delayScrollToX(this,0,duration,delay,mPositiveRefresher,null);
         }
     }
 
@@ -1375,10 +1437,10 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         int duration=mViewAnimateHelper.getAnimateDuration();
         if(negativeOverlayUsed){
             if(isOverlayRightRefresherShowing()) {
-                mViewAnimateHelper.delaySmoothTranslateX(mNegativeRefreshView,mNegativeWidth,duration,delay,false,mNegativeRefresher,getAnimEndWithoutRefreshListener());
+                mViewAnimateHelper.delaySmoothTranslateX(mNegativeRefreshView,mNegativeWidth,duration,delay,false,mNegativeRefresher,null);
             }
         }else if(isUnoverlayRightShowing()){
-            mViewAnimateHelper.delayScrollToX(this,0,duration,delay,mNegativeRefresher,getAnimEndWithoutRefreshListener());
+            mViewAnimateHelper.delayScrollToX(this,0,duration,delay,mNegativeRefresher,null);
         }
     }
 
@@ -1390,11 +1452,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         if(positiveOverlayUsed){
             if(!isOverlayUpRefresherShowing()){
-                mScrollHelper.setScrollToEdgeListener(null);
                 mViewAnimateHelper.delaySmoothTranslateY(mPositiveRefreshView, (int) mPositiveRefresher.getOverlayOffset(),duration,delay,true,mPositiveRefresher,getPositiveAnimEndListener());
             }
         }else if(!isUnoverlayoutUpShowing()){
-            mScrollHelper.setScrollToEdgeListener(null);
             mViewAnimateHelper.delayScrollToYWithRefer(this,mPositiveRefreshView,-mPositiveRefresher.getOverlayOffset(),true,duration,delay,mPositiveRefresher,getPositiveAnimEndListener());
         }
     }
@@ -1407,11 +1467,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         if(negativeOverlayUsed){
             if(!isOverlayDownRefresherShowing()){
-                mScrollHelper.setScrollToEdgeListener(null);
                 mViewAnimateHelper.delaySmoothTranslateY(mNegativeRefreshView, (int) -mNegativeRefresher.getOverlayOffset(),duration,delay,false,mNegativeRefresher,getNegativeAnimEndListener());
             }
         }else if(!isUnoverlayDownShowing()){
-            mScrollHelper.setScrollToEdgeListener(null);
             mViewAnimateHelper.delayScrollToYWithRefer(this,mNegativeRefreshView,mNegativeRefresher.getOverlayOffset(),false,duration,delay,mNegativeRefresher,getNegativeAnimEndListener());
         }
     }
@@ -1424,11 +1482,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         if(positiveOverlayUsed){
             if(!isOverlayLeftRefresherShowing()){
-                mScrollHelper.setScrollToEdgeListener(null);
                 mViewAnimateHelper.delaySmoothTranslateX(mPositiveRefreshView, (int) mPositiveRefresher.getOverlayOffset(),duration,delay,true,mPositiveRefresher,getPositiveAnimEndListener());
             }
         }else{
-            mScrollHelper.setScrollToEdgeListener(null);
             mViewAnimateHelper.delayScrollToXWithRefer(this,mPositiveRefreshView,-mPositiveRefresher.getOverlayOffset(),true,duration,delay,mPositiveRefresher,getPositiveAnimEndListener());
         }
     }
@@ -1441,11 +1497,9 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         }
         if(negativeOverlayUsed){
             if(!isOverlayRightRefresherShowing()){
-                mScrollHelper.setScrollToEdgeListener(null);
                 mViewAnimateHelper.delaySmoothTranslateX(mNegativeRefreshView, -(int) mNegativeRefresher.getOverlayOffset(),duration,delay,false,mNegativeRefresher,getNegativeAnimEndListener());
             }
         }else if(!isUnoverlayRightShowing()){
-            mScrollHelper.setScrollToEdgeListener(null);
             mViewAnimateHelper.delayScrollToXWithRefer(this,mNegativeRefreshView,mNegativeRefresher.getOverlayOffset(),false,duration,delay,mNegativeRefresher,getNegativeAnimEndListener());
         }
     }
@@ -1457,6 +1511,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
     @Override
     public boolean onStartNestedScroll(View child, View target, int nestedScrollAxes) {
         //Log.i(TAG,"onStartNestedScroll:"+nestedScrollAxes);
+        setScrollStatus(SCROLL_STATUS_TOUCH);
         int offset=0;
         boolean isRefresherShowing;
         if(orientationIsHorizontal){
@@ -1556,6 +1611,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
     public void onStopNestedScroll(View child) {
         //Log.i(TAG,"onStopNestedScroll");
         mNestedScrollingParentHelper.onStopNestedScroll(child);
+        setScrollStatus(SCROLL_STATUS_TOUCH_END);
         stopNestedScroll();
         float offsetX=0,offsetY=0;
         if(orientationIsHorizontal){
