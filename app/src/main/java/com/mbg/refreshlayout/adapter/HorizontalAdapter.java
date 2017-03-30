@@ -4,9 +4,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.mbg.refreshlayout.R;
+import com.mbg.refreshlayout.Urls;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +21,11 @@ import java.util.List;
 public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.MyViewHolder>{
 
     private List<Integer> dataList;
+    private int urlSize;
 
     public HorizontalAdapter(){
         dataList=new ArrayList<>();
+        urlSize= Urls.urls.length;
     }
 
     @Override
@@ -30,7 +35,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
 
     @Override
     public void onBindViewHolder(HorizontalAdapter.MyViewHolder holder, int position) {
-        holder.textView.setText((position+1)+"");
+        Glide.with(holder.imageView.getContext()).load(Urls.urls[position%urlSize]).into(holder.imageView);
     }
 
     @Override
@@ -56,8 +61,8 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
     class MyViewHolder extends RecyclerView.ViewHolder{
         public MyViewHolder(View itemView) {
             super(itemView);
-            textView=(TextView)itemView.findViewById(R.id.recycler_item_text);
+            imageView=(ImageView)itemView.findViewById(R.id.horizontal_image);
         }
-        public TextView textView;
+        public ImageView imageView;
     }
 }
