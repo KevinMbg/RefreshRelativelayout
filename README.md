@@ -12,8 +12,6 @@
 
 [Download Demo](/demoGif/app-debug.apk)
 ----
-## Background
-
 
 Usage
 -----
@@ -113,7 +111,26 @@ dependencies {
 在实际使用过程中，属性配置建议使用xml配置的方式，在java代码中每次重新设置属性都会重新布局。
 
 ## 自定义刷新refresher
-
+实际生产中需求的效果五花八门，所以refresher应该是可定制的。自定义refrehser也非常简单，只需要实现
+IRefresher这个接口即可，如下：
+```java
+public interface IRefresher {
+    //获取RefresherView
+    View getView(Context context, ViewGroup viewGroup);
+    void onDrag(float offset);
+    //当前位移是否达到刷新或加载更多的条件（offset相对为正直）
+    boolean canRefresh(float offset);
+    //当前refresher在刷新或加载时的位移，默认为0
+    float getOverlayOffset();
+    //刷新控件已经位于指定位置上开始刷新或者加载，返回值为true表示立即结束，一般多情况下返回false，类似demo中右滑加载更多的情况返回true
+    boolean onStartRefresh();
+    //当前还在刷新状态，只是需要隐藏refresher时调用，结束当前正在刷新的动画等
+    void onStopRefresh();
+    //刷新结束，收起refresher，返回值表示收起refresher的延时（比如qq下拉刷新结束的延时）
+    long onRefreshComplete();
+}
+```
+IRefresher这个接口是可定制化的，诸如加载更多时没有更多数据也可以在Refresher中实现。
 
 
 
