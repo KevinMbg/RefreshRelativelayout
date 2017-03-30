@@ -46,7 +46,7 @@ public abstract class BaseViewScrollHelper implements IViewScrollHelper {
 
     @Override
     public void addViewScroller(View view) {
-        if(null == view){
+        if(null == view || null == view.getViewTreeObserver()){
             return;
         }
         if(oritationIsHorizontal){

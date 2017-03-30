@@ -12,6 +12,8 @@ import android.view.ViewTreeObserver;
 
 public class NormalViewScrollHelper extends BaseViewScrollHelper {
 
+    private static final String TAG="NormalViewScrollHelper";
+
     private ViewTreeObserver.OnScrollChangedListener mCacheListener;
 
     //子控件是否能上滑
@@ -157,6 +159,7 @@ public class NormalViewScrollHelper extends BaseViewScrollHelper {
             view.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
                 public void onScrollChange(View view, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                    //Log.i(TAG,"setOnScrollChangeListener->listener is null?"+(null == listener));
                     if (null == listener) {
                         return;
                     }
@@ -174,6 +177,7 @@ public class NormalViewScrollHelper extends BaseViewScrollHelper {
             mCacheListener=new ViewTreeObserver.OnScrollChangedListener() {
                 @Override
                 public void onScrollChanged() {
+                    //Log.i(TAG,"setOnScrollChangeListener->listener is null?"+(null == listener));
                     if (null == listener) {
                         return;
                     }
@@ -194,6 +198,7 @@ public class NormalViewScrollHelper extends BaseViewScrollHelper {
             view.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
                 public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                    //Log.i(TAG,"setOnScrollChangeListener->listener is null?"+(null == listener));
                     if (null == listener) {
                         return;
                     }
@@ -209,6 +214,7 @@ public class NormalViewScrollHelper extends BaseViewScrollHelper {
             mCacheListener=new ViewTreeObserver.OnScrollChangedListener() {
                 @Override
                 public void onScrollChanged() {
+                    //Log.i(TAG,"setOnScrollChangeListener->listener is null?"+(null == listener));
                     if (null == listener) {
                         return;
                     }
@@ -227,6 +233,7 @@ public class NormalViewScrollHelper extends BaseViewScrollHelper {
             view.setOnScrollChangeListener(new View.OnScrollChangeListener() {
                 @Override
                 public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                    //Log.i(TAG,"setOnScrollChangeListener->listener is null?"+(null == listener));
                     if (null == listener) {
                         return;
                     }
@@ -242,6 +249,7 @@ public class NormalViewScrollHelper extends BaseViewScrollHelper {
             mCacheListener=new ViewTreeObserver.OnScrollChangedListener() {
                 @Override
                 public void onScrollChanged() {
+                    //Log.i(TAG,"setOnScrollChangeListener->listener is null?"+(null == listener));
                     if (null == listener) {
                         return;
                     }

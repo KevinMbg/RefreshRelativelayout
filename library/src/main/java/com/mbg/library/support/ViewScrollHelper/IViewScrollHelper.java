@@ -20,4 +20,8 @@ public interface IViewScrollHelper {
     public interface onScrollToEdgeListener{
         void onScrollToEdge(int edgeType);
     }
+
+    public interface onChildTouchChangeListener{
+        void onChildTouchChanged(boolean isUp);
+    }
 }

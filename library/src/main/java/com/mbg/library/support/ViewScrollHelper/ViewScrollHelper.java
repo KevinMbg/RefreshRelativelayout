@@ -1,7 +1,10 @@
 package com.mbg.library.support.ViewScrollHelper;
 
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsListView;
+
+import static android.R.attr.action;
 
 /**
  * Created by Administrator on 2017/3/25.
@@ -18,6 +21,8 @@ public class ViewScrollHelper implements IViewScrollHelper {
     private boolean orientationIsHorizontal=false;
     private boolean positiveDragEnable=true,negativeDragEnable=true;
     private onScrollToEdgeListener listener;
+    private onChildTouchChangeListener mChildTouchChangeListener;
+    private View.OnTouchListener mTouchListener;
 
     public ViewScrollHelper(boolean isHorizontal,boolean positiveDragEnable,boolean negativeDragEnable){
         this.orientationIsHorizontal=isHorizontal;
@@ -49,6 +54,28 @@ public class ViewScrollHelper implements IViewScrollHelper {
     public void addViewScroller(View view) {
         if(null == view){
             return;
+        }
+        if(null == mTouchListener){
+            mTouchListener=new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if(null == mChildTouchChangeListener){
+                        return false;
+                    }
+                    int action=event.getAction();
+                    switch (action){
+                        case MotionEvent.ACTION_DOWN:
+                            mChildTouchChangeListener.onChildTouchChanged(false);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL:
+                            mChildTouchChangeListener.onChildTouchChanged(true);
+                            break;
+                    }
+                    return false;
+                }
+            };
+            view.setOnTouchListener(mTouchListener);
         }
         if(null == mViewScrollHelperInner){
             if(view instanceof AbsListView){
@@ -94,5 +121,9 @@ public class ViewScrollHelper implements IViewScrollHelper {
         if(null != mViewScrollHelperInner){
             mViewScrollHelperInner.setScrollToEdgeListener(listener);
         }
+    }
+
+    public void setChildTouchChangeListener(onChildTouchChangeListener childTouchChangeListener){
+        this.mChildTouchChangeListener = childTouchChangeListener;
     }
 }

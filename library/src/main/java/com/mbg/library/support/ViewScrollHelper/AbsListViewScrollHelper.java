@@ -1,6 +1,5 @@
 package com.mbg.library.support.ViewScrollHelper;
 
-import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
 
@@ -191,7 +190,7 @@ public class AbsListViewScrollHelper extends NormalViewScrollHelper {
         absListView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
-                Log.i("onScrollStateChanged","scrollState:"+scrollState);
+                //Log.i("onScrollStateChanged","scrollState:"+scrollState);
                 if(null == listener){
                     return;
                 }

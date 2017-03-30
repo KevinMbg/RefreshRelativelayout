@@ -283,6 +283,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
     public RefreshRelativeLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
         initAttrs(context,attrs);
+        initHelpers();
         initViews(context);
     }
 
@@ -302,6 +303,10 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         mNestedScrollingParentHelper = new NestedScrollingParentHelper(this);
         mNestedScrollingChildHelper = new NestedScrollingChildHelper(this);
         setNestedScrollingEnabled(true);
+
+    }
+
+    private void initHelpers(){
         mViewAnimateHelper=new ViewAnimateHelper();
         mViewAnimateHelper.setAnimateStartListener(getAnimStartListener());
         mViewAnimateHelper.setAnimateEndListener(getAnimEndWithoutRefreshListener());
@@ -313,6 +318,17 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             }
         };
         mScrollHelper.setScrollToEdgeListener(onScrollToEdgeListener);
+        mScrollHelper.setChildTouchChangeListener(new IViewScrollHelper.onChildTouchChangeListener() {
+            @Override
+            public void onChildTouchChanged(boolean isUp) {
+                //Log.i(TAG,"onChildTouchChanged->isUp:"+isUp);
+                if(isUp){
+                    setScrollStatus(SCROLL_STATUS_TOUCH_END);
+                }else{
+                    setScrollStatus(SCROLL_STATUS_TOUCH);
+                }
+            }
+        });
     }
 
     private int mScrollStatus=SCROLL_STATUS_NORMAL;
@@ -767,6 +783,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         //Log.i(TAG,"onInterceptTouchEvent:"+intercept);
         return intercept;
     }
+
 
     private boolean canInterceptTouchEvent(float offsetX,float offsetY){
         //Log.i(TAG,"canInterceptTouchEvent:"+offsetX+","+offsetY);
