@@ -18,7 +18,7 @@ Usage
 ### Gradle
 ```groovy
 dependencies {
-   compile 'com.mbg.refreshrelativelayout:library:1.2.0'
+   compile 'com.mbg.refreshrelativelayout:library:1.3.0'
 }
 ```
 ### Maven
@@ -26,7 +26,7 @@ dependencies {
 <dependency>
   <groupId>com.mbg.refreshrelativelayout</groupId>
   <artifactId>library</artifactId>
-  <version>1.2.0</version>
+  <version>1.3.0</version>
   <type>pom</type>
 </dependency>
 ```
@@ -130,7 +130,9 @@ public interface IRefresher {
     long onRefreshComplete();
 }
 ```
-IRefresher这个接口是可定制化的，诸如加载更多时没有更多数据也可以在Refresher中实现。
+IRefresher这个接口是可定制化的，诸如加载更多时没有更多数据也可以在Refresher中实现,下图是我自定义实现的没有更多数据的refresher
+###### 没有更多数据
+![nomoredata](demoGif/nomoredata.gif)
 
 
 
