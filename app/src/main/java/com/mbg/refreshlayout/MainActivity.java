@@ -62,6 +62,10 @@ public class MainActivity extends BaseActivity {
         skipToNextActivity(NestedDoubleDirectionActivity.class);
     }
 
+    public void CustomRefresher(View view){
+        skipToNextActivity(CustomRefresherActivity.class);
+    }
+
     private void skipToNextActivity(Class T){
         Intent intent=new Intent(this,T);
         startActivity(intent);
