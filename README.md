@@ -4,13 +4,13 @@
 先看实际效果图（效果图较大，工程实际只有300k）。
 ## Demo
 ###### 竖直方向嵌套
-![vertical](demoGif/vertical.gif)
+![vertical](https://github.com/KevinMbg/DemoImages/blob/master/RefreshRelativelayoutDemos/vertical.gif)
 ###### 水平方向嵌套
-![horizontal](demoGif/horizontal.gif)
+![horizontal](https://github.com/KevinMbg/DemoImages/blob/master/RefreshRelativelayoutDemos/horizontal.gif)
 ###### 混合嵌套
-![mixed](demoGif/mixed.gif)
+![mixed](https://github.com/KevinMbg/DemoImages/blob/master/RefreshRelativelayoutDemos/mixed.gif)
 
-[Download Demo](/demoGif/app-debug.apk)
+[Download Demo](https://github.com/KevinMbg/DemoImages/blob/master/RefreshRelativelayoutDemos/app-debug.apk)
 ----
 
 Usage
@@ -132,7 +132,7 @@ public interface IRefresher {
 ```
 IRefresher这个接口是可定制化的，诸如加载更多时没有更多数据也可以在Refresher中实现,下图是我自定义实现的没有更多数据的refresher
 ###### 没有更多数据
-![nomoredata](demoGif/nomoredata.gif)
+![nomoredata](https://github.com/KevinMbg/DemoImages/blob/master/RefreshRelativelayoutDemos/nomoredata.gif)
 
 
 
