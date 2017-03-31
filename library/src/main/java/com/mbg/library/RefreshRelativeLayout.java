@@ -1598,6 +1598,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         float offsetX=0,offsetY=0;
         if(orientationIsHorizontal){
             offsetX=mTotalValidUnconsumed;
+        }else{
             offsetY=mTotalValidUnconsumed;
         }
         if(mTotalValidUnconsumed != 0) {
