@@ -70,7 +70,7 @@ public class LoadMoreWithNomoreRefresher implements IRefresher {
     @Override
     public boolean canRefresh(float offset) {
         int height=getHeight();
-        Log.i("customRefresher","height:"+height+",offset:"+offset+",hasmore:"+hasMore);
+        //Log.i("customRefresher","height:"+height+",offset:"+offset+",hasmore:"+hasMore);
         if(0 == height){
             return false;
         }

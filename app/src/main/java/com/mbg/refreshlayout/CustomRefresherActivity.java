@@ -48,12 +48,10 @@ public class CustomRefresherActivity extends BaseActivity {
 
             @Override
             public void onNegativeRefresh() {
-                Log.i("123123","onNegativeRefresh");
                 if(mRefresher.getHasMore()) {
                     recyclerView.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            Log.i("123123","onNegativeRefresh->postDelayed");
                             loadMoreTime++;
                             if (null != mAdapter) {
                                 mAdapter.addDataList();
@@ -67,12 +65,6 @@ public class CustomRefresherActivity extends BaseActivity {
                         }
                     }, 1000);
                 }else{
-                    /*recyclerView.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            refreshRelativeLayout.negativeRefreshComplete();
-                        }
-                    },1000);*/
                     refreshRelativeLayout.negativeRefreshComplete();
 
                 }
