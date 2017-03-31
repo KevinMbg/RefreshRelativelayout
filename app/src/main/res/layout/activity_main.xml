@@ -65,7 +65,7 @@
        <Button
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
-           android:text="自定义refresher"
+           android:text="没有更多数据的refresher"
            android:onClick="CustomRefresher"/>
 
    </LinearLayout>
