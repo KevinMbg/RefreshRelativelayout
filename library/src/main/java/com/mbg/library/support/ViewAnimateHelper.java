@@ -2,10 +2,13 @@ package com.mbg.library.support;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
 import com.mbg.library.IRefresher;
+
+import static android.R.attr.start;
 
 
 /**
@@ -47,8 +50,13 @@ public class ViewAnimateHelper {
     }
 
 
+    public void horizonalSmoothScrollTo(View view, float endOffset, long duration, IRefresher refresher,
+                                        onAnimateEndListener endListener){
+        horizonalSmoothScrollTo(view,endOffset,duration,refresher,endListener,false);
+    }
 
-    public void horizonalSmoothScrollTo(final View view, float endOffset, long duration, final IRefresher refresher, onAnimateEndListener endListener){
+    public void horizonalSmoothScrollTo(final View view, float endOffset, long duration, final IRefresher refresher,
+                                        onAnimateEndListener endListener,boolean withEndLastAnim){
         int startOffset=view.getScrollX();
         startAnimatorOfInt(startOffset, (int) endOffset, duration, new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -59,10 +67,16 @@ public class ViewAnimateHelper {
                     refresher.onDrag(Math.abs(offset));
                 }
             }
-        },endListener);
+        },endListener,withEndLastAnim);
     }
 
-    public void verticalSmoothScrollTo(final View view, float endOffset, long duration, final IRefresher refresher, onAnimateEndListener endListener){
+    public void verticalSmoothScrollTo(View view, float endOffset, long duration,IRefresher refresher,
+                                       onAnimateEndListener endListener){
+        verticalSmoothScrollTo(view,endOffset,duration,refresher,endListener,false);
+    }
+
+    public void verticalSmoothScrollTo(final View view, float endOffset, long duration, final IRefresher refresher,
+                                       onAnimateEndListener endListener,boolean withEndLastAnim){
         int startOffset=view.getScrollY();
         startAnimatorOfInt( startOffset, (int) endOffset, duration, new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -73,10 +87,16 @@ public class ViewAnimateHelper {
                     refresher.onDrag(Math.abs(offset));
                 }
             }
-        },endListener);
+        },endListener,withEndLastAnim);
     }
 
-    public void smoothTranslateX(final View view, float endX, long duration,boolean isPositive, final IRefresher refresher, onAnimateEndListener endListener){
+    public void smoothTranslateX(View view, float endX, long duration,boolean isPositive, IRefresher refresher,
+                                 onAnimateEndListener endListener){
+        smoothTranslateX(view,endX,duration,isPositive,refresher,endListener,false);
+    }
+
+    public void smoothTranslateX(final View view, float endX, long duration,boolean isPositive, final IRefresher refresher,
+                                 onAnimateEndListener endListener,boolean withEndLastAnim){
         float startX=view.getTranslationX();
         int width=view.getMeasuredWidth();
         if(isPositive){
@@ -92,10 +112,16 @@ public class ViewAnimateHelper {
                     refresher.onDrag(Math.abs(translateX-trueWidth));
                 }
             }
-        },endListener);
+        },endListener,withEndLastAnim);
     }
 
-    public void smoothTranslateY(final View view, float endY, long duration,boolean isPositive, final IRefresher refresher, onAnimateEndListener listener){
+    public void smoothTranslateY(View view, float endY, long duration,boolean isPositive, IRefresher refresher,
+                                 onAnimateEndListener listener){
+        smoothTranslateY(view,endY,duration,isPositive,refresher,listener,false);
+    }
+
+    public void smoothTranslateY(final View view, float endY, long duration,boolean isPositive, final IRefresher refresher,
+                                 onAnimateEndListener listener,boolean withEndLastAnim){
         float startY=view.getTranslationY();
         int height=view.getMeasuredHeight();
         if(isPositive){
@@ -111,12 +137,17 @@ public class ViewAnimateHelper {
                     refresher.onDrag(Math.abs(translateY-trueHeight));
                 }
             }
-        },listener);
+        },listener,withEndLastAnim);
     }
 
-    public void startAnimatorOfFloat(float startOffset, float endOffset, long duration, ValueAnimator.AnimatorUpdateListener animateupdateListener, final onAnimateEndListener endListener){
+    public void startAnimatorOfFloat(float startOffset, float endOffset, long duration, ValueAnimator.AnimatorUpdateListener animateupdateListener,
+                                     final onAnimateEndListener endListener,boolean iscancleLastAnim){
         if(null != mAnimator && mAnimator.isStarted()){
-            return;
+            if(iscancleLastAnim){
+                mAnimator.end();
+            }else {
+                return;
+            }
         }
         mAnimator = ValueAnimator.ofFloat(startOffset,endOffset);
         mAnimator.setDuration(duration);
@@ -153,9 +184,14 @@ public class ViewAnimateHelper {
         mAnimator.start();
     }
 
-    public void startAnimatorOfInt(final int startOffset, final int endOffset, long duration, ValueAnimator.AnimatorUpdateListener animateupdateListener, final onAnimateEndListener endListener){
+    public void startAnimatorOfInt(final int startOffset, final int endOffset, long duration, ValueAnimator.AnimatorUpdateListener animateupdateListener,
+                                   final onAnimateEndListener endListener,boolean iscancleLastAnim){
         if(null != mAnimator && mAnimator.isStarted()){
-            return;
+            if(iscancleLastAnim){
+                mAnimator.end();
+            }else {
+                return;
+            }
         }
         mAnimator = ValueAnimator.ofInt(startOffset,endOffset);
         mAnimator.setDuration(duration);
@@ -192,8 +228,22 @@ public class ViewAnimateHelper {
         mAnimator.start();
     }
 
+    public void delaySmoothTranslateYWithEnd(final View view, final int endoffset, final long duration, long delay, final boolean isPositive,
+                                      final IRefresher refresher, final onAnimateEndListener endListener){
+        if(delay == 0){
+            smoothTranslateY(view,endoffset,duration,isPositive,refresher,endListener,true);
+        }else{
+            view.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    smoothTranslateY(view,endoffset,duration,isPositive,refresher,endListener,true);
+                }
+            },delay);
+        }
+    }
 
-    public void delaySmoothTranslateY(final View view, final int endoffset, final long duration, long delay, final boolean isPositive, final IRefresher refresher, final onAnimateEndListener endListener){
+    public void delaySmoothTranslateY(final View view, final int endoffset, final long duration, long delay, final boolean isPositive,
+                                      final IRefresher refresher, final onAnimateEndListener endListener){
         if(delay == 0){
             smoothTranslateY(view,endoffset,duration,isPositive,refresher,endListener);
         }else{
@@ -205,8 +255,22 @@ public class ViewAnimateHelper {
             },delay);
         }
     }
+    public void delaySmoothTranslateXWithEnd(final View view, final int endoffset, final long duration, long delay,final boolean isPositive, final IRefresher refresher,
+                                      final onAnimateEndListener endListener){
+        if(delay == 0){
+            smoothTranslateX(view,endoffset,duration,isPositive,refresher,endListener,true);
+        }else{
+            view.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    smoothTranslateX(view,endoffset,duration,isPositive,refresher,endListener,true);
+                }
+            },delay);
+        }
+    }
 
-    public void delaySmoothTranslateX(final View view, final int endoffset, final long duration, long delay,final boolean isPositive, final IRefresher refresher, final onAnimateEndListener endListener){
+    public void delaySmoothTranslateX(final View view, final int endoffset, final long duration, long delay,final boolean isPositive, final IRefresher refresher,
+                                      final onAnimateEndListener endListener){
         if(delay == 0){
             smoothTranslateX(view,endoffset,duration,isPositive,refresher,endListener);
         }else{
@@ -219,7 +283,22 @@ public class ViewAnimateHelper {
         }
     }
 
-    public void delayScrollToY(final View view, final float endOffset, final long duration, long delay, final IRefresher refresher, final onAnimateEndListener endListener){
+    public void delayScrollToYWithEnd(final View view, final float endOffset, final long duration, long delay,
+                               final IRefresher refresher, final onAnimateEndListener endListener){
+        if(0 == delay){
+            verticalSmoothScrollTo(view,endOffset,duration,refresher,endListener,true);
+        }else {
+            view.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    verticalSmoothScrollTo(view,endOffset,duration,refresher,endListener,true);
+                }
+            }, delay);
+        }
+    }
+
+    public void delayScrollToY(final View view, final float endOffset, final long duration, long delay,
+                               final IRefresher refresher, final onAnimateEndListener endListener){
         if(0 == delay){
             verticalSmoothScrollTo(view,endOffset,duration,refresher,endListener);
         }else {
@@ -232,7 +311,22 @@ public class ViewAnimateHelper {
         }
     }
 
-    public void delayScrollToX(final View view, final float endOffset, final long duration, long delay, final IRefresher refresher, final onAnimateEndListener endListener){
+    public void delayScrollToXWithEnd(final View view, final float endOffset, final long duration, long delay,
+                               final IRefresher refresher, final onAnimateEndListener endListener){
+        if(0 == delay){
+            horizonalSmoothScrollTo(view,endOffset,duration,refresher,endListener,true);
+        }else{
+            view.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    horizonalSmoothScrollTo(view,endOffset,duration,refresher,endListener,true);
+                }
+            },delay);
+        }
+    }
+
+    public void delayScrollToX(final View view, final float endOffset, final long duration, long delay,
+                               final IRefresher refresher, final onAnimateEndListener endListener){
         if(0 == delay){
             horizonalSmoothScrollTo(view,endOffset,duration,refresher,endListener);
         }else{
@@ -256,20 +350,23 @@ public class ViewAnimateHelper {
      * @param refresher
      * @param endListener
      */
-    public void delayScrollToXWithRefer(final View view, final View referView, final float withOffset, final boolean isPositive, final long duration, long delay, final IRefresher refresher, final onAnimateEndListener endListener){
+    public void delayScrollToXWithRefer(final View view, final View referView, final float withOffset, final boolean isPositive,
+                                        final long duration, long delay, final IRefresher refresher,
+                                        final onAnimateEndListener endListener){
         if(delay == 0){
-            startScrooToXAnimator(view, referView,withOffset, isPositive, duration, refresher, endListener);
+            startScrooToXAnimator(view, referView,withOffset, isPositive, duration, refresher, endListener,false);
         }else {
             view.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    startScrooToXAnimator(view, referView,withOffset, isPositive, duration, refresher, endListener);
+                    startScrooToXAnimator(view, referView,withOffset, isPositive, duration, refresher, endListener,false);
                 }
             }, delay);
         }
     }
 
-    private void startScrooToXAnimator(View view,View referView,float withOffset,boolean isPositive,long duration,IRefresher refresher,onAnimateEndListener endListener){
+    private void startScrooToXAnimator(View view,View referView,float withOffset,boolean isPositive,long duration,
+                                       IRefresher refresher,onAnimateEndListener endListener,boolean withEndLastAnim){
         if(referView == null || view == null){
             return;
         }
@@ -279,10 +376,11 @@ public class ViewAnimateHelper {
         }else{
             width=referView.getMeasuredWidth()+withOffset;
         }
-        horizonalSmoothScrollTo(view,width,duration,refresher,endListener);
+        horizonalSmoothScrollTo(view,width,duration,refresher,endListener,withEndLastAnim);
     }
 
-    private void startScrooToYAnimator(View view,View referView,float withOffset,boolean isPositive,long duration,IRefresher refresher,onAnimateEndListener endListener){
+    private void startScrooToYAnimator(View view,View referView,float withOffset,boolean isPositive,
+                                       long duration,IRefresher refresher,onAnimateEndListener endListener){
         if(referView == null || view == null){
             return;
         }
@@ -308,7 +406,9 @@ public class ViewAnimateHelper {
      * @param refresher
      * @param endListener
      */
-    public void delayScrollToYWithRefer(final View view, final View referView, final float withOffset, final boolean isPositive, final long duration, final long delay, final IRefresher refresher, final onAnimateEndListener endListener){
+    public void delayScrollToYWithRefer(final View view, final View referView, final float withOffset,
+                                        final boolean isPositive, final long duration, final long delay,
+                                        final IRefresher refresher, final onAnimateEndListener endListener){
         if(delay == 0){
             startScrooToYAnimator(view,referView,withOffset,isPositive,duration,refresher,endListener);
         }else {
