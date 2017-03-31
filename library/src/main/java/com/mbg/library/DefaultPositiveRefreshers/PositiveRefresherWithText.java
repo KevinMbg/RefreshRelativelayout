@@ -83,10 +83,10 @@ public class PositiveRefresherWithText implements IRefresher {
         progress.setVisibility(View.GONE);
         if(offset <= (height+getOverlayOffset())){
             textView.setText("下拉刷新");
-            arrow.setRotationX(0);
+            arrow.setRotation(0);
         }else{
             textView.setText("释放立即刷新");
-            arrow.setRotationX(180);
+            arrow.setRotation(180);
         }
     }
 
