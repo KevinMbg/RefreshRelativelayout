@@ -46,7 +46,7 @@ dependencies {
 
 |attribute|value type|defalut value| description|
 | --- | --- | --- | --- |
-|orientation|enum|vertical|布局方式水平或竖直|
+|orientation|enum|vertical|布局方式水平或竖直(horizontal/vertical)|
 |positiveEnable|boolean|true|下拉刷新或者右滑刷新是否可用|
 |negativeEnable|boolean|true|上滑加载更多或左滑加载是否可用|
 |positiveDragEnable|boolean|true|positve方向可拖拽或是滑动到边缘自动加载|
