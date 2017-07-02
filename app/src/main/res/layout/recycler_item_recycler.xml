@@ -5,7 +5,7 @@
     android:layout_height="200dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:positiveEnable="false"
-    app:orientation="horizontal"
+    app:refreshOrientation="horizontal"
     app:isNegativeOverlay="false"
     app:negativeDragEnable="true"
     android:id="@+id/recycler_item_refresh"

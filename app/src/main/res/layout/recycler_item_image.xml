@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="200dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:orientation="horizontal"
+    app:refreshOrientation="horizontal"
     app:positiveEnable="false"
     app:negativeDragEnable="true"
     app:isNegativeOverlay="false"

@@ -17,7 +17,7 @@
     <com.mbg.library.RefreshRelativeLayout
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        app:orientation="horizontal"
+        app:refreshOrientation="horizontal"
         app:positive_refresher_type="HORIZONTAL_PROGRESSOR"
         app:negative_refresher_type="HORIZONTAL_PROGRESSOR"
         android:id="@+id/base_refresh">

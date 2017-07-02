@@ -10,7 +10,6 @@ import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -289,7 +288,7 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
 
     private void initAttrs(Context context ,AttributeSet attributeSet){
         TypedArray typedArray=context.obtainStyledAttributes(attributeSet,R.styleable.RefreshRelativeLayout);
-        orientationIsHorizontal = typedArray.getInt(R.styleable.RefreshRelativeLayout_orientation,ORIENTATION_VERTICAL) == ORIENTATION_HORIZONTAL;
+        orientationIsHorizontal = typedArray.getInt(R.styleable.RefreshRelativeLayout_refreshOrientation,ORIENTATION_VERTICAL) == ORIENTATION_HORIZONTAL;
         positiveDragEnable = typedArray.getBoolean(R.styleable.RefreshRelativeLayout_positiveDragEnable,true);
         negativeDragEnable = typedArray.getBoolean(R.styleable.RefreshRelativeLayout_negativeDragEnable,false);
         positiveEnable = typedArray.getBoolean(R.styleable.RefreshRelativeLayout_positiveEnable,true);
@@ -1586,7 +1585,6 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
         if(0 != offsetX || 0 != offsetY) {
             dealDragEventWithNested(offsetX, offsetY);
         }
-
     }
 
     @Override
@@ -1605,7 +1603,6 @@ public class RefreshRelativeLayout extends RelativeLayout implements NestedScrol
             onStopDrag(offsetX, offsetY);
         }
         mTotalValidUnconsumed=0;
-
     }
 
     @Override
