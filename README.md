@@ -18,7 +18,7 @@ Usage
 ### Gradle
 ```groovy
 dependencies {
-   compile 'com.mbg.refreshrelativelayout:library:1.3.1'
+   compile 'com.mbg.refreshrelativelayout:library:1.3.2'
 }
 ```
 ### Maven
@@ -26,7 +26,7 @@ dependencies {
 <dependency>
   <groupId>com.mbg.refreshrelativelayout</groupId>
   <artifactId>library</artifactId>
-  <version>1.3.1</version>
+  <version>1.3.2</version>
   <type>pom</type>
 </dependency>
 ```
